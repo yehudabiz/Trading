@@ -1,0 +1,16 @@
+LIBRARY	"SVMDLL"
+
+EXPORTS
+
+svmInitLearn
+svmLearnClose
+svmAddImageToLearningSet
+svmAddImageDataToLearningSet
+svmMultiClassGPLearningForTC
+getImage
+
+initSVMclassifiers
+svmDisambiguate
+svmDisambiguate2
+svmDisambiguate4
+convertSvmAlgString

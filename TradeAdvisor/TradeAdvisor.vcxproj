@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{05577D6D-CB43-4EC5-9CFC-83793C1C85B2}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>TradeAdvisor</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;TRADEADVISOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>$(LocalDebuggerWorkingDirectory)ExportFunctions.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>C:\VS_projects\TradeAdvisor;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>zlog_4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(TargetDir)$(TargetFileName)" "C:\GITROOT\Trading\BackTracer\bin\Debug"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;TRADEADVISOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnablePREfast>true</EnablePREfast>
+      <PrecompiledHeaderFile />
+      <PrecompiledHeaderOutputFile />
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>$(ProjectDir)ExportFunctions.def</ModuleDefinitionFile>
+    </Link>
+    <PostBuildEvent>
+      <Message>Copy to BackTracer</Message>
+      <Command>copy "$(TargetDir)$(TargetFileName)" "C:\GITROOT\Trading\BackTracer\bin\Release"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Balanced.cpp" />
+    <ClCompile Include="Bar.cpp" />
+    <ClCompile Include="DualSvm.cpp" />
+    <ClCompile Include="ExportFunctions.cpp" />
+    <ClCompile Include="DataSeries.cpp" />
+    <ClCompile Include="Global.cpp" />
+    <ClCompile Include="MA.cpp" />
+    <ClCompile Include="Random.cpp" />
+    <ClCompile Include="RandomBalanced.cpp" />
+    <ClCompile Include="RandomLong.cpp" />
+    <ClCompile Include="RandomShort.cpp" />
+    <ClCompile Include="RSI.cpp" />
+    <ClCompile Include="RsiStochSvm.cpp" />
+    <ClCompile Include="RsiTrader.cpp" />
+    <ClCompile Include="SeriesLogger.cpp" />
+    <ClCompile Include="SIT1.cpp" />
+    <ClCompile Include="SIT2.cpp" />
+    <ClCompile Include="SIT3.cpp" />
+    <ClCompile Include="Stoch.cpp" />
+    <ClCompile Include="svm.cpp" />
+    <ClCompile Include="SVM1.cpp" />
+    <ClCompile Include="SVM2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Balanced.h" />
+    <ClInclude Include="Bar.h" />
+    <ClInclude Include="DualSvm.h" />
+    <ClInclude Include="Global.h" />
+    <ClInclude Include="DataSeries.h" />
+    <ClInclude Include="ExportFunctions.h" />
+    <ClInclude Include="MA.h" />
+    <ClInclude Include="Order.h" />
+    <ClInclude Include="Random.h" />
+    <ClInclude Include="RandomBalanced.h" />
+    <ClInclude Include="RandomLong.h" />
+    <ClInclude Include="RandomShort.h" />
+    <ClInclude Include="RSI.h" />
+    <ClInclude Include="RsiStochSvm.h" />
+    <ClInclude Include="RsiTrader.h" />
+    <ClInclude Include="SeriesLogger.h" />
+    <ClInclude Include="SIT1.h" />
+    <ClInclude Include="SIT2.h" />
+    <ClInclude Include="SIT3.h" />
+    <ClInclude Include="Stoch.h" />
+    <ClInclude Include="svm.h" />
+    <ClInclude Include="SVM1.h" />
+    <ClInclude Include="SVM2.h" />
+    <ClInclude Include="TraderBase.h" />
+    <ClInclude Include="ZLOG.H" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ExportFunctions.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

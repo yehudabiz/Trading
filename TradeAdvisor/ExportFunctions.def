@@ -1,0 +1,9 @@
+LIBRARY "TradeAdvisor"
+
+EXPORTS
+
+Init				@1
+Deinit				@2
+UpdatePrice			@3
+AskAdvise			@4
+UpdateOrder			@5
