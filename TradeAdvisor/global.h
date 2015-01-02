@@ -72,7 +72,7 @@ using namespace std;
 // SVM modes
 #define SVM_DISABLED	0
 #define SVM_TRAINING	1
-#define SVM_TESTING		2
+#define SVM_ADVISING	2
 #define SVM_PROCESSING	3
 
 // Trader id

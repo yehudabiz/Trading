@@ -12,14 +12,22 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_pip = pip;
 	m_sl = (int)sl;
 	m_tp = (int)tp;
-	m_train_days = train_days;
-	m_mode = SVM_DISABLED;
-	m_start_time = 0;
-	m_lproblem = new svm_problem();
-	m_sproblem = new svm_problem();
-	m_svm_lmodel = 0;
-	m_svm_smodel = 0;
-	m_long_short = true;
+	m_svm_ready = SVM_DISABLED;
+	m_init_finished - false;
+	m_current_problem = m_problem_1;
+	m_svm_model = 0;
+	m_counter = 0;
+
+	m_svm_params = new svm_parameter();
+	m_svm_params->svm_type = C_SVC;
+	m_svm_params->kernel_type = RBF;
+	m_svm_params->cache_size = 100;
+	m_svm_params->gamma = 0.25;
+	m_svm_params->nr_weight = 0;
+	m_svm_params->eps = 0.001;
+	m_svm_params->shrinking = 1;
+	m_svm_params->C = 1;
+
 
 	ZLOG_Open(&m_log, "Logs", "", 0, ZLOG_FAC_DEFAULT, "", "RS", "1.0", true, 1);
 
@@ -41,13 +49,6 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_rsi_15.Init(symbol, m_source_data_15.GetCloseSeries(), m_stoch_k, m_max_size);
 	m_rsi_h.Init(symbol, m_source_data_h.GetCloseSeries(), m_stoch_k, m_max_size);
 	m_rsi_da.Init(symbol, m_source_data_da.GetCloseSeries(), m_stoch_k, m_max_size);
-
-	if (m_train_days == 0)
-	{
-		m_svm_lmodel = svm_load_model("lsvm.mod");
-		m_svm_smodel = svm_load_model("ssvm.mod");
-	}
-
 }
 
 void RsiStochSvm::AskAdvise(int& advise, double& stop_loss, double& take_profit)
@@ -56,70 +57,26 @@ void RsiStochSvm::AskAdvise(int& advise, double& stop_loss, double& take_profit)
 	advise = 0;
 	stop_loss = 0;
 	take_profit = 0;
+	string cadv = "DO_NOTHING";
 
-	switch (m_mode)
+	if (m_svm_ready == SVM_ADVISING)
 	{
-		case SVM_TRAINING:
-			WriteToLog(&m_log,"Mode is SVM_TRAINING");
-			if (m_long_short)
-			{
-				advise = BUY + TRAINING_ORDER;
-				stop_loss = m_source_data_5.GetBar(0).m_close - m_sl*m_pip;
-				take_profit = m_source_data_5.GetBar(0).m_close + m_tp*m_pip;
-			}
-			else
-			{
-				advise = SELL + TRAINING_ORDER;
-				stop_loss = m_source_data_5.GetBar(0).m_close + m_sl*m_pip;
-				take_profit = m_source_data_5.GetBar(0).m_close - m_tp*m_pip;
-			}
-			m_long_short = !m_long_short;
-			break;
-		case SVM_TESTING:
-			WriteToLog(&m_log,"Mode is SVM_TESTING");
+		vector<double>* vect = CreateVector();
+		svm_node* node = VectorToNodeArray(vect);
 
-			vector<double>* vect = CreateVector();
-			svm_node* node = VectorToNodeArray(vect);
+		double label = svm_predict(m_svm_model, node);
+		delete node;
 
-			// Log testing data
-			stringstream buf;
-			string str_vector = "";
-			for (unsigned j = 0; j < (*vect).size(); j++)
-			{
-				buf << j + 1 << ":" << (*vect)[j];
-				str_vector += buf.str() + " ";
-				buf.str(string());
-			}
-			m_testing_data.insert(m_testing_data.end(), str_vector);
-			delete vect;
-
-			double llabel = svm_predict(m_svm_lmodel, node);
-			double slabel = svm_predict(m_svm_smodel, node);
-			delete node;
-
-			WriteToLog(&m_log,"llabel = " + ConvertToString(llabel));
-			WriteToLog(&m_log,"slabel = " + ConvertToString(slabel));
-			string cadv = "DO_NOTHING";
-			if (llabel > 0 && slabel < 0)
-			{
-				advise = BUY;
-				cadv = "BUY";
-				stop_loss = m_source_data_5.GetBar(0).m_close - m_sl*m_pip;
-				take_profit = m_source_data_5.GetBar(0).m_close + m_tp*m_pip;
-			}
-
-			if (llabel < 0 && slabel > 0)
-			{
-				advise = SELL;
-				cadv = "SELL";
-				stop_loss = m_source_data_5.GetBar(0).m_close + m_sl*m_pip;
-				take_profit = m_source_data_5.GetBar(0).m_close - m_tp*m_pip;
-			}
-			WriteToLog(&m_log,"advise = " + cadv);
-
-			break;
-
+		WriteToLog(&m_log,"label = " + ConvertToString(label));
+		if (label > 0)
+		{
+			advise = BUY;
+			cadv = "BUY";
+			stop_loss = m_source_data_5.GetBar(0).m_close - m_sl*m_pip;
+			take_profit = m_source_data_5.GetBar(0).m_close + m_tp*m_pip;
+		}
 	}
+	WriteToLog(&m_log,"advise = " + cadv);
 }
 
 void RsiStochSvm::UpdatePrice(Bar bar)
@@ -139,25 +96,21 @@ void RsiStochSvm::UpdatePrice(Bar bar)
 	m_rsi_h.Update(is_new_h);
 	m_rsi_da.Update(is_new_da);
 
-	if (m_stoch_da.GetK(0) > 0 && m_rsi_da.GetValue(0) > 0 && m_mode == SVM_DISABLED)
+	if (m_stoch_da.GetK(0) > 0 && m_rsi_da.GetValue(0) > 0 && !m_svm_ready) m_svm_ready = SVM_TRAINING;
+
+	if (m_counter > 1000)
 	{
-		if (m_train_days > 0)
-		{
-			m_mode = SVM_TRAINING;
-		}
-		else
-		{
-			m_mode = SVM_TESTING;
-		}
+		m_counter = 0;
+		InitSvm();
+		m_svm_ready = SVM_ADVISING;
 	}
 
-	if (m_start_time == 0) m_start_time = bar.m_time;
-	if (m_start_time > 0 && bar.m_time - m_start_time > m_train_days*24*60*60 && m_mode == SVM_TRAINING) InitSvm();
+	if (m_svm_ready != SVM_DISABLED) m_counter++;
 }
 
 void RsiStochSvm::UpdateOrder(Order ord)
 {
-	if (m_mode != SVM_TRAINING) return;
+	if (!m_svm_ready) return;
 
 	if (ord.m_state == ORDER_STATE_OPEN)
 	{
@@ -185,8 +138,7 @@ void RsiStochSvm::UpdateOrder(Order ord)
 
 				// Delete order id befor converting to node
 				m_waiting_vectors[i]->erase(m_waiting_vectors[i]->begin());
-				UpdateProblem(ord.m_order_type == ORDER_TYPE_LONG ? m_lproblem : m_sproblem, 
-								VectorToNodeArray(m_waiting_vectors[i]), ord.m_pl > 0 ? 1 : -1);
+				UpdateProblem(m_current_problem, VectorToNodeArray(m_waiting_vectors[i]), ord.m_pl > 0 ? 1 : -1);
 				delete m_waiting_vectors[i];
 				m_waiting_vectors.erase(m_waiting_vectors.begin() + i);
 				break;
@@ -252,37 +204,35 @@ svm_node* RsiStochSvm::VectorToNodeArray(vector<double>* vector)
 
 void RsiStochSvm::Deinit()
 {
-	svm_free_model_content(m_svm_lmodel);
-	svm_free_model_content(m_svm_smodel);
+	svm_free_and_destroy_model(&m_svm_model);
 
 	SeriesLogger training_data_log("training_data.dat", &m_training_data);
 	training_data_log.SaveSeries();
 
-	SeriesLogger testing_data_log("testing_data.dat", &m_testing_data);
-	testing_data_log.SaveSeries();
-
+	delete m_svm_params;
 	ZLOG_Close(m_log);
 }
 
 void RsiStochSvm::InitSvm()
 {
-	svm_parameter* par = new svm_parameter();
-	par->svm_type = C_SVC;
-	par->kernel_type = RBF;
-	par->cache_size = 100;
-	par->gamma = 0.25;
-	par->nr_weight = 0;
-	par->eps = 0.001;
-	par->shrinking = 1;
-	par->C = 1;
+	ClearSvm();
+	if (m_current_problem == m_problem_1)
+	{
+		m_svm_model = svm_train(m_problem_1, m_svm_params);
+		if (m_problem_2 != nullptr) delete m_problem_2;
+		m_problem_2 = new svm_problem();
+		m_current_problem = m_problem_2;
+	}
+	else if (m_current_problem == m_problem_2)
+	{
+		m_svm_model = svm_train(m_problem_2, m_svm_params);
+		if (m_problem_1 != nullptr) delete m_problem_1;
+		m_problem_1 = new svm_problem();
+		m_current_problem = m_problem_1;
+	}
+}
 
-	m_svm_lmodel = svm_train(m_lproblem, par);
-	m_svm_smodel = svm_train(m_sproblem, par);
-
-	svm_save_model("lsvm.mod", m_svm_lmodel);
-	svm_save_model("ssvm.mod", m_svm_smodel);
-
-	delete par;
-
-	m_mode = SVM_TESTING;
+void RsiStochSvm::ClearSvm()
+{
+	svm_free_and_destroy_model(&m_svm_model);
 }

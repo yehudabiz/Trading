@@ -22,7 +22,7 @@ TraderSvm1::TraderSvm1 (int symbol, int period, double pip, double sl, double tp
 	m_stoch.Init(m_symbol, m_source_data.GetHighSeries(), m_source_data.GetLowSeries(), m_source_data.GetCloseSeries(), 
 		m_stoch_k, m_stoch_d, m_stoch_slow, MODE_EMA, m_max_size);
 
-	if (m_mode == SVM_TESTING) m_svm_model = svm_load_model("svm1.mod");
+	if (m_mode == SVM_ADVISING) m_svm_model = svm_load_model("svm1.mod");
 }
 
 void TraderSvm1::AskAdvise(int& advise, double& stop_loss, double& take_profit)
@@ -47,7 +47,7 @@ void TraderSvm1::AskAdvise(int& advise, double& stop_loss, double& take_profit)
 				take_profit = m_source_data.GetBar(0).m_close - m_tp*m_pip;
 			}
 			break;
-		case SVM_TESTING:
+		case SVM_ADVISING:
 			svm_node* node = VectorToNodeArray(CreateVector());
 			double label = svm_predict(m_svm_model, node);
 			delete node;
@@ -83,7 +83,7 @@ void TraderSvm1::UpdatePrice(Bar bar)
 
 void TraderSvm1::UpdateOrder(Order ord)
 {
-	if (m_mode == SVM_TESTING) return;
+	if (m_mode == SVM_ADVISING) return;
 
 	if (ord.m_state == ORDER_STATE_OPEN)
 	{

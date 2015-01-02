@@ -16,14 +16,13 @@ namespace PFY
         public double TakeProfit { get; set; }
         public double StopLoss { get; set; }
         public OrderStatus Status { get; set; }
-        public bool IsTraining { get; set; }
 
         public Order()
         {
             Status = OrderStatus.Open;
         }
 
-        public Order(OrderType typ, DateTime time, double price, double vol, double sl, double tp, bool isTraining)
+        public Order(OrderType typ, DateTime time, double price, double vol, double sl, double tp)
         {
             OpenTime = time;
             Type = typ;
@@ -32,7 +31,6 @@ namespace PFY
             TakeProfit = tp;
             StopLoss = sl;
             Status = OrderStatus.Open;
-            IsTraining = isTraining;
         }
 
         public double Profit

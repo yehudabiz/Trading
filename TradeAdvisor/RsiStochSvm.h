@@ -35,8 +35,8 @@ private:
 	RSI m_rsi_da;
 
 	int m_symbol;
-	int m_mode;
-
+	bool m_init_finished;
+	int m_svm_ready;
 	int m_max_size;
 	int m_stoch_k;
 	int m_stoch_d;
@@ -44,14 +44,13 @@ private:
 	double m_pip;
 	int m_sl;
 	int m_tp;
-	int m_train_days;
-	long m_start_time;
-	bool m_long_short;
+	int m_counter;
 	vector<vector<double>*> m_waiting_vectors;
-	svm_model* m_svm_lmodel;
-	svm_model* m_svm_smodel;
-	svm_problem* m_lproblem;
-	svm_problem* m_sproblem;
+	svm_model* m_svm_model;
+	svm_problem* m_problem_1;
+	svm_problem* m_problem_2;
+	svm_problem* m_current_problem;
+	svm_parameter* m_svm_params;
 	vector<string> m_training_data;
 	vector<string> m_testing_data;
 	ZLOG_CONTEXT m_log;
@@ -60,4 +59,5 @@ private:
 	svm_node* VectorToNodeArray(vector<double>* vector);
 	void UpdateProblem(svm_problem* problem, svm_node* node, int result);
 	void InitSvm();
+	void ClearSvm();
 };

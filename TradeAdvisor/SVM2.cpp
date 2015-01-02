@@ -39,7 +39,7 @@ void TraderSvm2::AskAdvise(int& advise, double& stop_loss, double& take_profit)
 			stop_loss = m_source_data.GetBar(0).m_close - m_sl*m_pip;
 			take_profit = m_source_data.GetBar(0).m_close + m_tp*m_pip;
 			break;
-		case SVM_TESTING:
+		case SVM_ADVISING:
 			svm_node* node = VectorToNodeArray(CreateVector());
 			double label = svm_predict(m_svm_model, node);
 			delete node;
@@ -165,5 +165,5 @@ void TraderSvm2::InitSvm()
 	m_svm_model = svm_train(m_problem, par);
 	delete par;
 
-	m_mode = SVM_TESTING;
+	m_mode = SVM_ADVISING;
 }

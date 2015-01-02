@@ -52,7 +52,7 @@ void TraderDualSvm::AskAdvise(int& advise, double& stop_loss, double& take_profi
 			}
 			m_long_short = !m_long_short;
 			break;
-		case SVM_TESTING:
+		case SVM_ADVISING:
 			svm_node* node = VectorToNodeArray(CreateVector());
 			double llabel = svm_predict(m_svm_lmodel, node);
 			double slabel = svm_predict(m_svm_smodel, node);
@@ -193,5 +193,5 @@ void TraderDualSvm::InitSvm()
 	m_svm_smodel = svm_train(m_sproblem, par);
 	delete par;
 
-	m_mode = SVM_TESTING;
+	m_mode = SVM_ADVISING;
 }
