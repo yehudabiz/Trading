@@ -24,5 +24,9 @@ public:
 	int m_state;
 	double m_entry_price; 
 	double m_close_price; 
+	double m_sl; 
+	double m_tp; 
 	double m_pl; 
+
+	 
 };

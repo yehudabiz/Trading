@@ -45,7 +45,9 @@ private:
 	int m_sl;
 	int m_tp;
 	int m_counter;
+	long m_order_counter;
 	vector<vector<double>*> m_waiting_vectors;
+	vector<Order> m_orders;
 	svm_model* m_svm_model;
 	svm_problem* m_problem_1;
 	svm_problem* m_problem_2;
@@ -58,6 +60,8 @@ private:
 	vector<double>* CreateVector();
 	svm_node* VectorToNodeArray(vector<double>* vector);
 	void UpdateProblem(svm_problem* problem, svm_node* node, int result);
+	void CreateTrainingOrder(double curr_price);
+	void CheckOrders(double curr_price);
 	void InitSvm();
 	void ClearSvm();
 };

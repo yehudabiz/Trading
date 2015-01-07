@@ -332,9 +332,9 @@ namespace PFY
                         Advise advise = TraderWrapper.AskTrader(out sl, out tp);
 
                         if ((advise & Advise.Buy) == Advise.Buy) OpenOrder(OrderType.Long, m_lastBar, sl, tp);
-                        if ((advise & Advise.Sell) == Advise.Sell) OpenOrder(OrderType.Short, m_lastBar, sl, tp);
-                        if ((advise & Advise.CloseLong) == Advise.CloseLong) CloseByType(OrderType.Long, m_lastBar);
-                        if ((advise & Advise.CloseShort) == Advise.CloseShort) CloseByType(OrderType.Short, m_lastBar);
+                        //if ((advise & Advise.Sell) == Advise.Sell) OpenOrder(OrderType.Short, m_lastBar, sl, tp);
+                        //if ((advise & Advise.CloseLong) == Advise.CloseLong) CloseByType(OrderType.Long, m_lastBar);
+                        //if ((advise & Advise.CloseShort) == Advise.CloseShort) CloseByType(OrderType.Short, m_lastBar);
                     }
                 }
 

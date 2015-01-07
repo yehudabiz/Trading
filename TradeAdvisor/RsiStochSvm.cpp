@@ -15,8 +15,10 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_svm_ready = SVM_DISABLED;
 	m_init_finished - false;
 	m_current_problem = m_problem_1;
+	m_current_problem = new svm_problem();
 	m_svm_model = 0;
 	m_counter = 0;
+	m_order_counter = 0;
 
 	m_svm_params = new svm_parameter();
 	m_svm_params->svm_type = C_SVC;
@@ -105,7 +107,12 @@ void RsiStochSvm::UpdatePrice(Bar bar)
 		m_svm_ready = SVM_ADVISING;
 	}
 
-	if (m_svm_ready != SVM_DISABLED) m_counter++;
+	if (m_svm_ready != SVM_DISABLED)
+	{
+		m_counter++;
+		CheckOrders(bar.m_close);
+		CreateTrainingOrder(bar.m_close);
+	}
 }
 
 void RsiStochSvm::UpdateOrder(Order ord)
@@ -235,4 +242,30 @@ void RsiStochSvm::InitSvm()
 void RsiStochSvm::ClearSvm()
 {
 	svm_free_and_destroy_model(&m_svm_model);
+}
+
+void RsiStochSvm::CreateTrainingOrder(double curr_price)
+{
+	m_order_counter++;
+	if (m_order_counter == 2147483646) m_order_counter = 1;
+	Order ord(m_order_counter, EURUSD, 0, 0, ORDER_TYPE_LONG, ORDER_STATE_OPEN, curr_price, 0, 0);
+	ord.m_sl = curr_price - m_sl*m_pip;
+	ord.m_tp = curr_price + m_tp*m_pip;
+	m_orders.insert(m_orders.end(), ord);
+	UpdateOrder(ord);
+}
+
+void RsiStochSvm::CheckOrders(double curr_price)
+{
+	for (int i = 0; i < m_orders.size(); i++)
+	{
+		if (i >= m_orders.size()) break;
+		if (m_orders[i].m_tp <= curr_price || m_orders[i].m_sl >= curr_price)
+		{
+			m_orders[i].m_pl = curr_price - m_orders[i].m_entry_price;
+			m_orders[i].m_state = ORDER_STATE_CLOSED;
+			UpdateOrder(m_orders[i]);
+			m_orders.erase(m_orders.begin() + i);
+		}
+	}
 }
