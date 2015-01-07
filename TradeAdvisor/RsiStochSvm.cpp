@@ -14,8 +14,9 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_tp = (int)tp;
 	m_svm_ready = SVM_DISABLED;
 	m_init_finished - false;
+	m_problem_1 = new svm_problem();
+	m_problem_2 = 0;
 	m_current_problem = m_problem_1;
-	m_current_problem = new svm_problem();
 	m_svm_model = 0;
 	m_counter = 0;
 	m_order_counter = 0;
@@ -226,14 +227,14 @@ void RsiStochSvm::InitSvm()
 	if (m_current_problem == m_problem_1)
 	{
 		m_svm_model = svm_train(m_problem_1, m_svm_params);
-		if (m_problem_2 != nullptr) delete m_problem_2;
+		if (m_problem_2 != 0) delete m_problem_2;
 		m_problem_2 = new svm_problem();
 		m_current_problem = m_problem_2;
 	}
 	else if (m_current_problem == m_problem_2)
 	{
 		m_svm_model = svm_train(m_problem_2, m_svm_params);
-		if (m_problem_1 != nullptr) delete m_problem_1;
+		if (m_problem_1 != 0) delete m_problem_1;
 		m_problem_1 = new svm_problem();
 		m_current_problem = m_problem_1;
 	}

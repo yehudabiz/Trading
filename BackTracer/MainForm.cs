@@ -261,9 +261,7 @@ namespace PFY
 
                 string file = String.Empty;
 
-                file = m_filesList.Find(fn => fn.Contains(processDay.ToString("yyyy.MM.dd")) ||
-                                              fn.Contains(processDay.ToString("yyyy.MM.dd")) ||
-                                              fn.Contains(processDay.ToString("yyyy.MM.dd")));
+                file = m_filesList.Find(fn => fn.Contains(processDay.ToString("yyyy.MM.dd")));
 
                 double startDayBalance = m_balance;
                 if (!String.IsNullOrEmpty(file))
