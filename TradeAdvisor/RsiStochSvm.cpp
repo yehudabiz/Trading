@@ -1,9 +1,8 @@
 #pragma once
-#include "DualSvm.h"
 #include "SeriesLogger.h"
 #include "RsiStochSvm.h"
 
-RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double tp, int train_days)
+RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double tp)
 {
 	m_max_size = 200;
 	m_stoch_k = 14;
@@ -12,11 +11,10 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_pip = pip;
 	m_sl = (int)sl;
 	m_tp = (int)tp;
+	m_to = 2*60*60;
 	m_svm_ready = SVM_DISABLED;
 	m_init_finished - false;
-	m_problem_1 = new svm_problem();
-	m_problem_2 = 0;
-	m_current_problem = m_problem_1;
+	m_problem = new svm_problem();
 	m_svm_model = 0;
 	m_counter = 0;
 	m_order_counter = 0;
@@ -54,12 +52,13 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_rsi_da.Init(symbol, m_source_data_da.GetCloseSeries(), m_stoch_k, m_max_size);
 }
 
-void RsiStochSvm::AskAdvise(int& advise, double& stop_loss, double& take_profit)
+void RsiStochSvm::AskAdvise(int& advise, double& stop_loss, double& take_profit, long& timeout)
 {
-	WriteToLog(&m_log,"AskAdvise invoked. Last bar time is " + ConvertTimeToString(m_source_data_5.GetBar(0).m_time));
+	//WriteToLog(&m_log,"AskAdvise invoked. Last bar time is " + ConvertTimeToString(m_source_data_5.GetBar(0).m_time));
 	advise = 0;
 	stop_loss = 0;
 	take_profit = 0;
+	timeout = 0;
 	string cadv = "DO_NOTHING";
 
 	if (m_svm_ready == SVM_ADVISING)
@@ -77,9 +76,10 @@ void RsiStochSvm::AskAdvise(int& advise, double& stop_loss, double& take_profit)
 			cadv = "BUY";
 			stop_loss = m_source_data_5.GetBar(0).m_close - m_sl*m_pip;
 			take_profit = m_source_data_5.GetBar(0).m_close + m_tp*m_pip;
+			timeout = m_to;
 		}
 	}
-	WriteToLog(&m_log,"advise = " + cadv);
+	//WriteToLog(&m_log,"advise = " + cadv);
 }
 
 void RsiStochSvm::UpdatePrice(Bar bar)
@@ -99,21 +99,38 @@ void RsiStochSvm::UpdatePrice(Bar bar)
 	m_rsi_h.Update(is_new_h);
 	m_rsi_da.Update(is_new_da);
 
-	if (m_stoch_da.GetK(0) > 0 && m_rsi_da.GetValue(0) > 0 && !m_svm_ready) m_svm_ready = SVM_TRAINING;
-
-	if (m_counter > 1000)
+	if (m_stoch_da.GetK(0) > 0 && m_rsi_da.GetValue(0) > 0 && !m_svm_ready) 
 	{
+		m_svm_ready = SVM_TRAINING;
+		WriteToLog(&m_log, "Initial data collection finished. Traning started");
+	}
+
+	if (m_svm_ready == SVM_TRAINING)
+ 	{
+		CheckOrders(bar);
+		CreateTrainingOrder(bar);
+		if (m_counter > 8000)
+		{
+			m_counter = 0;
+			InitSvm();
+			m_svm_ready = SVM_ADVISING;
+			WriteToLog(&m_log, "Traning finished");
+			WriteToLog(&m_log, "Trading started: " + ConvertTimeToString(bar.m_time));
+		}
+	}
+
+	if (m_svm_ready == SVM_ADVISING && m_counter > 1500)
+ 	{
 		m_counter = 0;
-		InitSvm();
-		m_svm_ready = SVM_ADVISING;
+		delete m_problem;
+		m_problem = new svm_problem();
+		m_orders.clear();
+		m_svm_ready = SVM_TRAINING;
+		WriteToLog(&m_log, "Trading finished");
+		WriteToLog(&m_log, "Traning started: " + ConvertTimeToString(bar.m_time));
 	}
 
-	if (m_svm_ready != SVM_DISABLED)
-	{
-		m_counter++;
-		CheckOrders(bar.m_close);
-		CreateTrainingOrder(bar.m_close);
-	}
+	if (m_svm_ready != SVM_DISABLED) m_counter++;
 }
 
 void RsiStochSvm::UpdateOrder(Order ord)
@@ -146,7 +163,7 @@ void RsiStochSvm::UpdateOrder(Order ord)
 
 				// Delete order id befor converting to node
 				m_waiting_vectors[i]->erase(m_waiting_vectors[i]->begin());
-				UpdateProblem(m_current_problem, VectorToNodeArray(m_waiting_vectors[i]), ord.m_pl > 0 ? 1 : -1);
+				UpdateProblem(m_problem, VectorToNodeArray(m_waiting_vectors[i]), ord.m_pl > 0 ? 1 : -1);
 				delete m_waiting_vectors[i];
 				m_waiting_vectors.erase(m_waiting_vectors.begin() + i);
 				break;
@@ -224,20 +241,7 @@ void RsiStochSvm::Deinit()
 void RsiStochSvm::InitSvm()
 {
 	ClearSvm();
-	if (m_current_problem == m_problem_1)
-	{
-		m_svm_model = svm_train(m_problem_1, m_svm_params);
-		if (m_problem_2 != 0) delete m_problem_2;
-		m_problem_2 = new svm_problem();
-		m_current_problem = m_problem_2;
-	}
-	else if (m_current_problem == m_problem_2)
-	{
-		m_svm_model = svm_train(m_problem_2, m_svm_params);
-		if (m_problem_1 != 0) delete m_problem_1;
-		m_problem_1 = new svm_problem();
-		m_current_problem = m_problem_1;
-	}
+	m_svm_model = svm_train(m_problem, m_svm_params);
 }
 
 void RsiStochSvm::ClearSvm()
@@ -245,28 +249,36 @@ void RsiStochSvm::ClearSvm()
 	svm_free_and_destroy_model(&m_svm_model);
 }
 
-void RsiStochSvm::CreateTrainingOrder(double curr_price)
+void RsiStochSvm::CreateTrainingOrder(Bar bar)
 {
 	m_order_counter++;
 	if (m_order_counter == 2147483646) m_order_counter = 1;
-	Order ord(m_order_counter, EURUSD, 0, 0, ORDER_TYPE_LONG, ORDER_STATE_OPEN, curr_price, 0, 0);
-	ord.m_sl = curr_price - m_sl*m_pip;
-	ord.m_tp = curr_price + m_tp*m_pip;
+	Order ord(m_order_counter, EURUSD, 0, 0, ORDER_TYPE_LONG, ORDER_STATE_OPEN, bar.m_close, 0, 0);
+	ord.m_sl = bar.m_close - m_sl*m_pip;
+	ord.m_tp = bar.m_close + m_tp*m_pip;
+	ord.m_open_time = bar.m_time;
 	m_orders.insert(m_orders.end(), ord);
 	UpdateOrder(ord);
 }
 
-void RsiStochSvm::CheckOrders(double curr_price)
+void RsiStochSvm::CheckOrders(Bar bar)
 {
 	for (int i = 0; i < m_orders.size(); i++)
 	{
 		if (i >= m_orders.size()) break;
-		if (m_orders[i].m_tp <= curr_price || m_orders[i].m_sl >= curr_price)
+		if (bar.m_time - m_orders[i].m_open_time > m_to) 
 		{
-			m_orders[i].m_pl = curr_price - m_orders[i].m_entry_price;
-			m_orders[i].m_state = ORDER_STATE_CLOSED;
-			UpdateOrder(m_orders[i]);
-			m_orders.erase(m_orders.begin() + i);
+			m_orders.erase(m_orders.begin() + i); 
+		}
+		else
+		{
+			if (m_orders[i].m_tp <= bar.m_close || m_orders[i].m_sl >= bar.m_close)
+			{
+				m_orders[i].m_pl = bar.m_close - m_orders[i].m_entry_price;
+				m_orders[i].m_state = ORDER_STATE_CLOSED;
+				UpdateOrder(m_orders[i]);
+				m_orders.erase(m_orders.begin() + i);
+			}
 		}
 	}
 }

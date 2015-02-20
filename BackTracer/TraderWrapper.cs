@@ -56,12 +56,12 @@ namespace PFY
         }
 
         [DllImport(dllPath, CharSet = CharSet.None)]
-        extern private static void AskAdvise(out int advise, out double sl, out double tp);
+        extern private static void AskAdvise(out int advise, out double sl, out double tp, out int timeout);
 
-        public static Advise AskTrader(out double stopLoss, out double takeProfit)
+        public static Advise AskTrader(out double stopLoss, out double takeProfit, out int timeout)
         {
             int adv = 0;
-            AskAdvise(out adv, out stopLoss, out takeProfit);
+            AskAdvise(out adv, out stopLoss, out takeProfit, out timeout);
             return (Advise)adv;
         }
     }

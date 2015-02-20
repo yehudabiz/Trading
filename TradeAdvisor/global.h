@@ -76,18 +76,6 @@ using namespace std;
 #define SVM_PROCESSING	3
 
 // Trader id
-#define RANDOM			0
-#define SIT1			1  // Exit on MA reversal
-#define SIT2			2  // Trade on daily trends only
-#define SIT3			3  // Exit on SL/TP
-#define RANDOM_BALANCED	4
-#define RANDOM_LONG		5
-#define RANDOM_SHORT	6
-#define BALANCED		7
-#define SVM1			8
-#define SVM2			9
-#define DUAL_SVM		10
-#define RSI_TRADER		11
 #define RSI_STOCH		12
 
 

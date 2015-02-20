@@ -95,53 +95,29 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Balanced.cpp" />
     <ClCompile Include="Bar.cpp" />
-    <ClCompile Include="DualSvm.cpp" />
     <ClCompile Include="ExportFunctions.cpp" />
     <ClCompile Include="DataSeries.cpp" />
     <ClCompile Include="Global.cpp" />
     <ClCompile Include="MA.cpp" />
-    <ClCompile Include="Random.cpp" />
-    <ClCompile Include="RandomBalanced.cpp" />
-    <ClCompile Include="RandomLong.cpp" />
-    <ClCompile Include="RandomShort.cpp" />
     <ClCompile Include="RSI.cpp" />
     <ClCompile Include="RsiStochSvm.cpp" />
-    <ClCompile Include="RsiTrader.cpp" />
     <ClCompile Include="SeriesLogger.cpp" />
-    <ClCompile Include="SIT1.cpp" />
-    <ClCompile Include="SIT2.cpp" />
-    <ClCompile Include="SIT3.cpp" />
     <ClCompile Include="Stoch.cpp" />
     <ClCompile Include="svm.cpp" />
-    <ClCompile Include="SVM1.cpp" />
-    <ClCompile Include="SVM2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Balanced.h" />
     <ClInclude Include="Bar.h" />
-    <ClInclude Include="DualSvm.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="DataSeries.h" />
     <ClInclude Include="ExportFunctions.h" />
     <ClInclude Include="MA.h" />
     <ClInclude Include="Order.h" />
-    <ClInclude Include="Random.h" />
-    <ClInclude Include="RandomBalanced.h" />
-    <ClInclude Include="RandomLong.h" />
-    <ClInclude Include="RandomShort.h" />
     <ClInclude Include="RSI.h" />
     <ClInclude Include="RsiStochSvm.h" />
-    <ClInclude Include="RsiTrader.h" />
     <ClInclude Include="SeriesLogger.h" />
-    <ClInclude Include="SIT1.h" />
-    <ClInclude Include="SIT2.h" />
-    <ClInclude Include="SIT3.h" />
     <ClInclude Include="Stoch.h" />
     <ClInclude Include="svm.h" />
-    <ClInclude Include="SVM1.h" />
-    <ClInclude Include="SVM2.h" />
     <ClInclude Include="TraderBase.h" />
     <ClInclude Include="ZLOG.H" />
   </ItemGroup>

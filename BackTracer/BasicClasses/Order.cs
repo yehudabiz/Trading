@@ -15,6 +15,7 @@ namespace PFY
         public double Volume { get; set; }
         public double TakeProfit { get; set; }
         public double StopLoss { get; set; }
+        public int Timeout { get; set; } //seconds
         public OrderStatus Status { get; set; }
 
         public Order()
@@ -22,7 +23,7 @@ namespace PFY
             Status = OrderStatus.Open;
         }
 
-        public Order(OrderType typ, DateTime time, double price, double vol, double sl, double tp)
+        public Order(OrderType typ, DateTime time, double price, double vol, double sl, double tp, int to)
         {
             OpenTime = time;
             Type = typ;
@@ -30,6 +31,7 @@ namespace PFY
             Volume = vol;
             TakeProfit = tp;
             StopLoss = sl;
+            Timeout = to;
             Status = OrderStatus.Open;
         }
 
@@ -48,8 +50,9 @@ namespace PFY
             }
         }
 
-        public bool IsToClose(double price)
+        public bool IsToClose(double price, DateTime now)
         {
+            if ((now.Ticks - OpenTime.Ticks) / 10000000 > Timeout) return true;
             if (StopLoss != 0 && price * (int)Type < StopLoss * (int)Type)
             {
                 return true;

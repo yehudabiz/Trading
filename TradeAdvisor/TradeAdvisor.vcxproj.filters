@@ -48,47 +48,11 @@
     <ClCompile Include="MA.cpp">
       <Filter>Source Files\Indicators</Filter>
     </ClCompile>
-    <ClCompile Include="Random.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="RandomBalanced.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="RandomLong.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="SIT1.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="SIT2.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="SIT3.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="RandomShort.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="Balanced.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="SVM1.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
     <ClCompile Include="svm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SVM2.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
-    <ClCompile Include="DualSvm.cpp">
-      <Filter>Source Files\Traders</Filter>
-    </ClCompile>
     <ClCompile Include="RSI.cpp">
       <Filter>Source Files\Indicators</Filter>
-    </ClCompile>
-    <ClCompile Include="RsiTrader.cpp">
-      <Filter>Source Files\Traders</Filter>
     </ClCompile>
     <ClCompile Include="RsiStochSvm.cpp">
       <Filter>Source Files\Traders</Filter>
@@ -122,50 +86,14 @@
     <ClInclude Include="MA.h">
       <Filter>Header Files\Indicators</Filter>
     </ClInclude>
-    <ClInclude Include="Random.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="RandomBalanced.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="RandomLong.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="SIT1.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="SIT2.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="SIT3.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
     <ClInclude Include="SeriesLogger.h">
       <Filter>Header Files\BaseClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="RandomShort.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="Balanced.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="SVM1.h">
-      <Filter>Header Files\Traders</Filter>
     </ClInclude>
     <ClInclude Include="svm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SVM2.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
-    <ClInclude Include="DualSvm.h">
-      <Filter>Header Files\Traders</Filter>
-    </ClInclude>
     <ClInclude Include="RSI.h">
       <Filter>Header Files\Indicators</Filter>
-    </ClInclude>
-    <ClInclude Include="RsiTrader.h">
-      <Filter>Header Files\Traders</Filter>
     </ClInclude>
     <ClInclude Include="RsiStochSvm.h">
       <Filter>Header Files\Traders</Filter>

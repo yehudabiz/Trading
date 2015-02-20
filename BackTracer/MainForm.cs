@@ -26,6 +26,7 @@ namespace PFY
         private int m_totalIterations;
         private int m_iterationsCounter = 0;
         private StreamWriter m_reportWriter;
+        private StreamWriter m_log;
 
         public MainForm()
         {
@@ -147,7 +148,10 @@ namespace PFY
             FileStream fsr = File.Open("Orders_" + m_trader.Name + "_" + m_trader.Symbol.ToString() + "_" + m_trader.TradeResolution.ToString() +
                 "_" + numMinPar1.Value + "_" + numMinPar2.Value + "_" + numMinPar3.Value + "_" + numMinPar4.Value + ".csv", FileMode.Create);
             m_reportWriter = new StreamWriter(fsr);
-            m_reportWriter.WriteLine("OpenTime, CloseTime, Type, OpenPrice, ClosePrice, Volume, TakeProfit, StopLoss, Profit, IsForced");
+            m_reportWriter.WriteLine("OpenTime, CloseTime, Type, OpenPrice, ClosePrice, Volume, TakeProfit, StopLoss, Profit, IsForced, Balance");
+
+            FileStream lsr = File.Open(@"Logs\BT_LOG.txt", FileMode.Create);
+            m_log = new StreamWriter(lsr);
 
             DateTime start = startTimePicker.Value;
             DateTime end = endTimePicker.Value;
@@ -229,6 +233,7 @@ namespace PFY
             HideProgressBar();
             writer.Close();
             m_reportWriter.Close();
+            m_log.Close();
         }
 
         private StrategyResult IterateOnDays(DateTime fromDay, DateTime toDay)
@@ -319,7 +324,7 @@ namespace PFY
                     {
                         foreach (Order o in m_orders)
                         {
-                            if (o.Status == OrderStatus.Open && o.IsToClose(m_lastBar.Close))
+                            if (o.Status == OrderStatus.Open && o.IsToClose(m_lastBar.Close, m_lastBar.TimeStamp))
                             {
                                 Close(o, m_lastBar);
                             }
@@ -327,9 +332,10 @@ namespace PFY
 
                         TraderWrapper.UpdateTraderWithPrice(m_lastBar);
                         double sl, tp;
-                        Advise advise = TraderWrapper.AskTrader(out sl, out tp);
+                        int to;
+                        Advise advise = TraderWrapper.AskTrader(out sl, out tp, out to);
 
-                        if ((advise & Advise.Buy) == Advise.Buy) OpenOrder(OrderType.Long, m_lastBar, sl, tp);
+                        if ((advise & Advise.Buy) == Advise.Buy) OpenOrder(OrderType.Long, m_lastBar, sl, tp, to);
                         //if ((advise & Advise.Sell) == Advise.Sell) OpenOrder(OrderType.Short, m_lastBar, sl, tp);
                         //if ((advise & Advise.CloseLong) == Advise.CloseLong) CloseByType(OrderType.Long, m_lastBar);
                         //if ((advise & Advise.CloseShort) == Advise.CloseShort) CloseByType(OrderType.Short, m_lastBar);
@@ -344,10 +350,10 @@ namespace PFY
             }
         }
 
-        private void OpenOrder(OrderType type, Bar bar, double sl, double tp)
+        private void OpenOrder(OrderType type, Bar bar, double sl, double tp, int to)
         {
             double price = bar.Close + m_slippage * (int)type;
-            Order newOrder = new Order(type, bar.TimeStamp, price, 10000, sl, tp);
+            Order newOrder = new Order(type, bar.TimeStamp, price, 10000, sl, tp, to);
             m_orders.Add(newOrder);
             TraderWrapper.UpdateTraderWithOrder(newOrder);
 
@@ -368,12 +374,14 @@ namespace PFY
             order.ClosePrice = b.Close;
             order.Status = OrderStatus.Closed;
             if (!isForced) TraderWrapper.UpdateTraderWithOrder(order);
-            WriteLog("Order " + m_orders.IndexOf(order) + " closed. Time=" + b.TimeStamp.ToString("dd/MM/yyyy HH:mm:ss") + ", Price=" + b.Close + ", PL=" +
-                                        order.Profit + ", Ballance: " + m_balance);
             m_balance += (double)Math.Round((double)order.Profit, 2);
+            string log_msg = "Order " + m_orders.IndexOf(order) + " closed. Time=" + b.TimeStamp.ToString("dd/MM/yyyy HH:mm:ss") + ", Price=" + b.Close + ", PL=" +
+                                        order.Profit + ", Ballance: " + m_balance;
+            WriteLog(log_msg);
+            m_log.WriteLine(log_msg);
             m_reportWriter.WriteLine(order.OpenTime.ToString("yyyy-MM-dd_HH:mm:ss") + "," + order.CloseTime.ToString("yyyy-MM-dd_HH:mm:ss") + "," +
                 order.Type.ToString() + "," + order.OpenPrice + "," + order.ClosePrice + "," + order.Volume + "," + order.TakeProfit + "," +
-                order.StopLoss + "," + order.Profit + "," + isForced.ToString());
+                order.StopLoss + "," + order.Profit + "," + isForced.ToString() + "," + m_balance);
         }
 
         private void CalculateResult(ref StrategyResult result, List<double> dailyProfit)
