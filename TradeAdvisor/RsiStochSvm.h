@@ -19,6 +19,10 @@ public:
 	void Deinit();
 
 private:
+	static const int m_training_count = 7000;
+	static const int m_testing_count = 1500;
+	static const int m_traiding_count = 1500;
+
 	DataSeries m_source_data_5;
 	DataSeries m_source_data_15;
 	DataSeries m_source_data_h;
@@ -45,15 +49,16 @@ private:
 	int m_sl;
 	int m_tp;
 	int m_to;
-	int m_counter;
+	int m_tick_counter;
+	int m_iteration_counter;
 	long m_order_counter;
 	vector<vector<double>*> m_waiting_vectors;
 	vector<Order> m_orders;
 	svm_model* m_svm_model;
 	svm_problem* m_problem;
+	vector<svm_node*> m_testing_nodes;
 	svm_parameter* m_svm_params;
-	vector<string> m_training_data;
-	vector<string> m_testing_data;
+	vector<string> m_logged_data;
 	ZLOG_CONTEXT m_log;
 	vector<double>* CreateVector(Order ord);
 	vector<double>* CreateVector();

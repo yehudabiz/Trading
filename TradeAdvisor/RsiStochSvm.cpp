@@ -16,7 +16,8 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_init_finished - false;
 	m_problem = new svm_problem();
 	m_svm_model = 0;
-	m_counter = 0;
+	m_tick_counter = 0;
+	m_iteration_counter = 1;
 	m_order_counter = 0;
 
 	m_svm_params = new svm_parameter();
@@ -109,28 +110,54 @@ void RsiStochSvm::UpdatePrice(Bar bar)
  	{
 		CheckOrders(bar);
 		CreateTrainingOrder(bar);
-		if (m_counter > 8000)
+		if (m_tick_counter > m_training_count)
 		{
-			m_counter = 0;
+			SeriesLogger training_data_log(ConvertToString(m_iteration_counter) + "_training_data.dat", &m_logged_data);
+			training_data_log.SaveSeries();
+			m_logged_data.clear();
+
+			m_tick_counter = 0;
+			m_svm_ready = SVM_TESTING;
+			WriteToLog(&m_log, "Traning finished");
+			WriteToLog(&m_log, "Testing started: " + ConvertTimeToString(bar.m_time));
+		}
+	}
+
+	if (m_svm_ready == SVM_TESTING)
+ 	{
+		CheckOrders(bar);
+		CreateTrainingOrder(bar);
+		if (m_tick_counter > m_testing_count)
+		{
+			SeriesLogger training_data_log(ConvertToString(m_iteration_counter) + "_testing_data.dat", &m_logged_data);
+			training_data_log.SaveSeries();
+			m_logged_data.clear();
+
+			m_tick_counter = 0;
 			InitSvm();
 			m_svm_ready = SVM_ADVISING;
-			WriteToLog(&m_log, "Traning finished");
+			WriteToLog(&m_log, "Testing finished");
 			WriteToLog(&m_log, "Trading started: " + ConvertTimeToString(bar.m_time));
 		}
 	}
 
-	if (m_svm_ready == SVM_ADVISING && m_counter > 1500)
+	if (m_svm_ready == SVM_ADVISING && m_tick_counter > m_traiding_count)
  	{
-		m_counter = 0;
+		SeriesLogger training_data_log(ConvertToString(m_iteration_counter) + "_traiding_data.dat", &m_logged_data);
+		training_data_log.SaveSeries();
+		m_logged_data.clear();
+
+		m_tick_counter = 0;
 		delete m_problem;
 		m_problem = new svm_problem();
 		m_orders.clear();
 		m_svm_ready = SVM_TRAINING;
+		m_iteration_counter++;
 		WriteToLog(&m_log, "Trading finished");
 		WriteToLog(&m_log, "Traning started: " + ConvertTimeToString(bar.m_time));
 	}
 
-	if (m_svm_ready != SVM_DISABLED) m_counter++;
+	if (m_svm_ready != SVM_DISABLED) m_tick_counter++;
 }
 
 void RsiStochSvm::UpdateOrder(Order ord)
@@ -159,11 +186,20 @@ void RsiStochSvm::UpdateOrder(Order ord)
 					str_vector += buf.str() + " ";
 					buf.str(string());
 				}
-				m_training_data.insert(m_training_data.end(), str_vector);
+				m_logged_data.insert(m_logged_data.end(), str_vector);
 
 				// Delete order id befor converting to node
 				m_waiting_vectors[i]->erase(m_waiting_vectors[i]->begin());
-				UpdateProblem(m_problem, VectorToNodeArray(m_waiting_vectors[i]), ord.m_pl > 0 ? 1 : -1);
+
+				if (m_svm_ready == SVM_TRAINING)
+				{
+					UpdateProblem(m_problem, VectorToNodeArray(m_waiting_vectors[i]), ord.m_pl > 0 ? 1 : -1);
+				}
+				else if (m_svm_ready == SVM_TESTING)
+				{
+					m_testing_nodes.insert(m_testing_nodes.end(), VectorToNodeArray(m_waiting_vectors[i]));
+				}
+
 				delete m_waiting_vectors[i];
 				m_waiting_vectors.erase(m_waiting_vectors.begin() + i);
 				break;
@@ -230,9 +266,6 @@ svm_node* RsiStochSvm::VectorToNodeArray(vector<double>* vector)
 void RsiStochSvm::Deinit()
 {
 	svm_free_and_destroy_model(&m_svm_model);
-
-	SeriesLogger training_data_log("training_data.dat", &m_training_data);
-	training_data_log.SaveSeries();
 
 	delete m_svm_params;
 	ZLOG_Close(m_log);

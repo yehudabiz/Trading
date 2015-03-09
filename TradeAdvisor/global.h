@@ -73,7 +73,7 @@ using namespace std;
 #define SVM_DISABLED	0
 #define SVM_TRAINING	1
 #define SVM_ADVISING	2
-#define SVM_PROCESSING	3
+#define SVM_TESTING		3
 
 // Trader id
 #define RSI_STOCH		12

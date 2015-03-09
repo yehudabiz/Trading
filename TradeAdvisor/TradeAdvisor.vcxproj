@@ -66,7 +66,7 @@
       <AdditionalDependencies>zlog_4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)$(TargetFileName)" "C:\GITROOT\Trading\BackTracer\bin\Debug"</Command>
+      <Command>copy "$(TargetDir)$(TargetFileName)" "..\BackTracer\bin\Debug"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
