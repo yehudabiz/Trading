@@ -21,15 +21,6 @@ RsiStochSvm::RsiStochSvm (int symbol, int period, double pip, double sl, double 
 	m_order_counter = 0;
 
 	m_svm_params = new svm_parameter();
-	m_svm_params->svm_type = C_SVC;
-	m_svm_params->kernel_type = RBF;
-	m_svm_params->cache_size = 100;
-	m_svm_params->gamma = 0.25;
-	m_svm_params->nr_weight = 0;
-	m_svm_params->eps = 0.001;
-	m_svm_params->shrinking = 1;
-	m_svm_params->C = 1;
-
 
 	ZLOG_Open(&m_log, "Logs", "", 0, ZLOG_FAC_DEFAULT, "", "RS", "1.0", true, 1);
 
@@ -135,15 +126,17 @@ void RsiStochSvm::UpdatePrice(Bar bar)
 
 			m_tick_counter = 0;
 			InitSvm();
+			m_testing_nodes.clear();
+			m_testing_result.clear();
 			m_svm_ready = SVM_ADVISING;
 			WriteToLog(&m_log, "Testing finished");
 			WriteToLog(&m_log, "Trading started: " + ConvertTimeToString(bar.m_time));
 		}
 	}
 
-	if (m_svm_ready == SVM_ADVISING && m_tick_counter > m_traiding_count)
+	if (m_svm_ready == SVM_ADVISING && m_tick_counter > m_trading_count)
  	{
-		SeriesLogger training_data_log(ConvertToString(m_iteration_counter) + "_traiding_data.dat", &m_logged_data);
+		SeriesLogger training_data_log(ConvertToString(m_iteration_counter) + "_trading_data.dat", &m_logged_data);
 		training_data_log.SaveSeries();
 		m_logged_data.clear();
 
@@ -197,6 +190,7 @@ void RsiStochSvm::UpdateOrder(Order ord)
 				}
 				else if (m_svm_ready == SVM_TESTING)
 				{
+					m_testing_result.insert(m_testing_result.end(), ord.m_pl > 0 ? 1 : -1);
 					m_testing_nodes.insert(m_testing_nodes.end(), VectorToNodeArray(m_waiting_vectors[i]));
 				}
 
@@ -273,6 +267,48 @@ void RsiStochSvm::Deinit()
 
 void RsiStochSvm::InitSvm()
 {
+	m_svm_params->svm_type = C_SVC;
+	m_svm_params->kernel_type = RBF;
+	m_svm_params->cache_size = 100;
+	m_svm_params->nr_weight = 0;
+	m_svm_params->eps = 0.001;
+	m_svm_params->shrinking = 1;
+
+	WriteToLog(&m_log, "Testing started");
+	double best_g = 0;
+	double best_c = 0;
+	double max_success = 0;
+	for (int g = 0.2; g < 5; g += 0.2)
+	{
+		for (int c = 0.2; c < 5; c += 0.2)
+		{
+			WriteToLog(&m_log, "gamma = " + ConvertToString(g) + ", C = " + ConvertToString(c));
+
+			m_svm_params->gamma = g;
+			m_svm_params->C = c;
+			ClearSvm();
+			m_svm_model = svm_train(m_problem, m_svm_params);
+			int success = 0;
+			for (int i = 0; i < m_testing_nodes.size(); i++)
+			{
+				double label = svm_predict(m_svm_model, m_testing_nodes[i]);
+				if (label > 0 && m_testing_result[i] > 0) success++;
+			}
+			double success_percent = 100 * ((double)success)/((double)m_testing_nodes.size());
+			WriteToLog(&m_log, "Success percent = " + ConvertToString(success_percent));
+
+			if (success_percent > max_success)
+			{
+				best_g = g;
+				best_c = c;
+				max_success = success_percent;
+			}
+		}
+	}
+
+	WriteToLog(&m_log, "Best parameters: gamma = " + ConvertToString(best_g) + ", C = " + ConvertToString(best_c));
+	m_svm_params->gamma = best_g;
+	m_svm_params->C = best_c;
 	ClearSvm();
 	m_svm_model = svm_train(m_problem, m_svm_params);
 }

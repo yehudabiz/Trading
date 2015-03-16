@@ -21,7 +21,7 @@ public:
 private:
 	static const int m_training_count = 7000;
 	static const int m_testing_count = 1500;
-	static const int m_traiding_count = 1500;
+	static const int m_trading_count = 1500;
 
 	DataSeries m_source_data_5;
 	DataSeries m_source_data_15;
@@ -57,6 +57,7 @@ private:
 	svm_model* m_svm_model;
 	svm_problem* m_problem;
 	vector<svm_node*> m_testing_nodes;
+	vector<double> m_testing_result;
 	svm_parameter* m_svm_params;
 	vector<string> m_logged_data;
 	ZLOG_CONTEXT m_log;
