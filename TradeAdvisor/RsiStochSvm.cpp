@@ -274,13 +274,13 @@ void RsiStochSvm::InitSvm()
 	m_svm_params->eps = 0.001;
 	m_svm_params->shrinking = 1;
 
-	WriteToLog(&m_log, "Testing started");
+	WriteToLog(&m_log, "SVM params tuning started");
 	double best_g = 0;
 	double best_c = 0;
 	double max_success = 0;
-	for (int g = 0.2; g < 5; g += 0.2)
+	for (double g = 0.2; g < 5; g += 0.2)
 	{
-		for (int c = 0.2; c < 5; c += 0.2)
+		for (double c = 0.2; c < 5; c += 0.2)
 		{
 			WriteToLog(&m_log, "gamma = " + ConvertToString(g) + ", C = " + ConvertToString(c));
 
